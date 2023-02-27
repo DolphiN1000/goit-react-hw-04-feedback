@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState } from 'react';
 
 import Section from './Section/Section';
 import FeedbackVariants from './FeedbackVariants/FeedbackVariants';
@@ -12,67 +12,58 @@ const feedbackOption = ['good', 'neutral', 'bad'];
 const initialState = feedbackOption.reduce((a, v) => ({ ...a, [v]: 0 }), {});
 const message = 'There is no feedback';
 
-class Feedback extends Component {
-  state = initialState;
+const Feedback = () => {
+  const [feedbacks, setFeedbacks] = useState({ ...initialState });
 
-  // feedbackOptions = () => {
-  //   const feedbackOptions = Object.keys(this.state);
-  //   return feedbackOptions;
-  // };
-
-  incraseValue = name => {
-    this.setState(prevState => {
-      return {
-        [name]: prevState[name] + 1,
-      };
+  const leaveFeedback = name => {
+    setFeedbacks(prevState => {
+      const value = prevState[name];
+      return { ...prevState, [name]: value + 1 };
     });
   };
 
-  countTotalFeedback() {
-    const { good, neutral, bad } = this.state;
-    const total = good + neutral + bad;
-    return total;
-  }
+  const countTotalFeedback = () => {
+    const values = Object.values(feedbacks);
+    return values.reduce((a, v) => a + v, 0);
+  };
 
-  countFeedbackPercentage(propName) {
-    const total = this.countTotalFeedback();
+  const countFeedbackPercentage = propName => {
+    const total = countTotalFeedback();
     if (!total) {
       return 0;
     }
-    const value = this.state[propName];
+    const value = feedbacks[propName];
     const result = ((value / total) * 100).toFixed(2);
     return Number(result);
-  }
+  };
 
-  render() {
-    const { good, neutral, bad } = this.state;
-    const total = this.countTotalFeedback();
-    const feedbackPercentage = this.countFeedbackPercentage('good');
-    // const feedbackOptions = this.feedbackOptions();
+  const { good, neutral, bad } = feedbacks;
+  const total = countTotalFeedback();
+  const feedbackPercentage = countFeedbackPercentage('good');
 
-    return (
-      <div className={styles.container}>
-        <Section title="Please leave feedback">
-          <FeedbackVariants
-            options={Object.keys(this.state)}
-            leaveFeedback={this.incraseValue}
+  return (
+    <div className={styles.container}>
+      <Section title="Please leave feedback">
+        <FeedbackVariants
+          options={Object.keys(feedbacks)}
+          leaveFeedback={leaveFeedback}
+        />
+      </Section>
+      <Section title="Statiatics">
+        {total !== 0 ? (
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={total}
+            feedbackPercentage={feedbackPercentage}
           />
-        </Section>
-        <Section title="Statiatics">
-          {total !== 0 ? (
-            <Statistics
-              good={good}
-              neutral={neutral}
-              bad={bad}
-              total={total}
-              feedbackPercentage={feedbackPercentage}
-            />
-          ) : (
-            <Notification message={message} />
-          )}
-        </Section>
-      </div>
-    );
-  }
-}
+        ) : (
+          <Notification message={message} />
+        )}
+      </Section>
+    </div>
+  );
+};
+
 export default Feedback;
